@@ -12,7 +12,7 @@ DB_HOST = os.getenv("DB_HOST", "localhost")
 DB_NAME = os.getenv("DB_NAME", "parsers_db")
 DB_USER = os.getenv("DB_USER", "user")
 DB_PASSWORD = os.getenv("DB_PASSWORD", "password")
-
+DB_TABLE = os.getenv("DB_TABLE", "parsers")
 
 def get_parsers_to_run():
     """Получает список парсеров, которые должны запуститься в этот момент"""
