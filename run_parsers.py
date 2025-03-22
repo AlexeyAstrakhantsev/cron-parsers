@@ -13,6 +13,7 @@ DB_NAME = os.getenv("DB_NAME", "parsers_db")
 DB_USER = os.getenv("DB_USER", "user")
 DB_PASSWORD = os.getenv("DB_PASSWORD", "password")
 DB_TABLE = os.getenv("DB_TABLE", "parsers")
+DOCKER_COMPOSE_PATH = os.getenv("DOCKER_COMPOSE_PATH", ".")  # Путь к docker-compose.yml
 
 def get_parsers_to_run():
     """Получает список парсеров, которые должны запуститься в этот момент"""
@@ -61,11 +62,11 @@ def convert_update_period_to_cron(update_period):
 
 
 def run_parsers():
-    """Запускает нужные парсеры"""
+    """Запускает нужные парсеры через docker-compose"""
     parsers = get_parsers_to_run()
     for parser in parsers:
         print(f"Запускаем парсер {parser}")
-        subprocess.run(["docker", "start", parser])  # Запускаем контейнер
+        subprocess.run(["docker-compose", "-f", f"{DOCKER_COMPOSE_PATH}/docker-compose.yml", "up", "-d", parser])
 
 
 if __name__ == "__main__":
