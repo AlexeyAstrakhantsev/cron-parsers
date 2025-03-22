@@ -25,7 +25,7 @@ def get_parsers_to_run():
     cursor = conn.cursor()
     now = datetime.now()
     
-    cursor.execute("SELECT database_name, update_period FROM parsers")
+    cursor.execute(f"SELECT database_name, update_period FROM {DB_TABLE}")
     parsers = cursor.fetchall()
     
     to_run = []
