@@ -69,6 +69,15 @@ def is_container_running(container_name):
 
 def run_parsers():
     """Запускает нужные парсеры через docker-compose, если они не запущены"""
+    # Выводим текущие настройки окружения
+    print("Текущие настройки окружения:")
+    print(f"DB_HOST: {DB_HOST}")
+    print(f"DB_NAME: {DB_NAME}")
+    print(f"DB_USER: {DB_USER}")
+    print(f"DB_TABLE: {DB_TABLE}")
+    print(f"DOCKER_COMPOSE_PATH: {DOCKER_COMPOSE_PATH}")
+    print("-" * 50)
+
     parsers = get_parsers_to_run()
     for parser in parsers:
         if not is_container_running(parser):
