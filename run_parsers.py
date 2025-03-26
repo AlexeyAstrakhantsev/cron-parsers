@@ -18,7 +18,7 @@ DOCKER_COMPOSE_PATH = os.getenv("DOCKER_COMPOSE_PATH", ".")  # Путь к docke
 def get_parsers_to_run():
     """Получает список парсеров, которые должны запуститься в этот момент"""
     conn = psycopg2.connect(
-        host="localhost",
+        host=DB_HOST,
         dbname=DB_NAME,
         user=DB_USER,
         password=DB_PASSWORD
@@ -84,7 +84,6 @@ def run_parsers():
             command = [
                 "docker", "compose",
                 "-f", f"{DOCKER_COMPOSE_PATH}/docker-compose.yml",
-                "--env-file", f"{DOCKER_COMPOSE_PATH}/.env",
                 "up", "-d", parser
             ]
             print(f"Запускаем парсер {parser}")
