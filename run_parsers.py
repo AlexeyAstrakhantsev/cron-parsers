@@ -77,7 +77,7 @@ def run_parsers():
                 "docker", "compose",
                 "-f", f"{DOCKER_COMPOSE_PATH}/docker-compose.yml",
                 "--env-file", f"{DOCKER_COMPOSE_PATH}/.env",
-                "up", , parser
+                "up", parser
             ])
         else:
             print(f"Парсер {parser} уже запущен, пропускаем")
