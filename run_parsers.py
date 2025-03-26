@@ -72,13 +72,15 @@ def run_parsers():
     parsers = get_parsers_to_run()
     for parser in parsers:
         if not is_container_running(parser):
-            print(f"Запускаем парсер {parser}")
-            subprocess.run([
+            command = [
                 "docker", "compose",
                 "-f", f"{DOCKER_COMPOSE_PATH}/docker-compose.yml",
                 "--env-file", f"{DOCKER_COMPOSE_PATH}/.env",
-                "up", parser
-            ])
+                "up", "-d", parser
+            ]
+            print(f"Запускаем парсер {parser}")
+            print(f"Выполняемая команда: {' '.join(command)}")
+            subprocess.run(command)
         else:
             print(f"Парсер {parser} уже запущен, пропускаем")
 
