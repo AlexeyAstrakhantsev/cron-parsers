@@ -61,15 +61,21 @@ def convert_update_period_to_cron(update_period):
     return None
 
 
+def is_container_running(container_name):
+    """Проверяет, запущен ли контейнер"""
+    result = subprocess.run(["docker", "ps", "--filter", f"name={container_name}", "--format", "{{.Names}}"], capture_output=True, text=True)
+    return container_name in result.stdout.strip().split("\n")
+
+
 def run_parsers():
-    """Запускает нужные парсеры через docker-compose"""
+    """Запускает нужные парсеры через docker-compose, если они не запущены"""
     parsers = get_parsers_to_run()
     for parser in parsers:
-        print(f"Запускаем парсер {parser}")
-        # subprocess.run(["docker compose", "-f", f"{DOCKER_COMPOSE_PATH}/docker-compose.yml", "up", "-d", parser])
-        subprocess.run(["docker", "compose", "-f", f"{DOCKER_COMPOSE_PATH}/docker-compose.yml", "up", "-d", parser])
-
-
+        if not is_container_running(parser):
+            print(f"Запускаем парсер {parser}")
+            subprocess.run(["docker", "compose", "-f", f"{DOCKER_COMPOSE_PATH}/docker-compose.yml", "up", "-d", parser])
+        else:
+            print(f"Парсер {parser} уже запущен, пропускаем")
 
 if __name__ == "__main__":
     run_parsers()
