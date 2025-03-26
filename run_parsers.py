@@ -18,7 +18,7 @@ DOCKER_COMPOSE_PATH = os.getenv("DOCKER_COMPOSE_PATH", ".")  # Путь к docke
 def get_parsers_to_run():
     """Получает список парсеров, которые должны запуститься в этот момент"""
     conn = psycopg2.connect(
-        host=DB_HOST,
+        host="localhost",
         dbname=DB_NAME,
         user=DB_USER,
         password=DB_PASSWORD
