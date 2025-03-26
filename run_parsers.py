@@ -66,7 +66,7 @@ def run_parsers():
     parsers = get_parsers_to_run()
     for parser in parsers:
         print(f"Запускаем парсер {parser}")
-        subprocess.run(["docker-compose", "-f", f"{DOCKER_COMPOSE_PATH}/docker-compose.yml", "up", "-d", parser])
+        subprocess.run(["docker compose", "-f", f"{DOCKER_COMPOSE_PATH}/docker-compose.yml", "up", "-d", parser])
 
 
 if __name__ == "__main__":
