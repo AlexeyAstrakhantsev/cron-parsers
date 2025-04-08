@@ -1,7 +1,7 @@
 import os
 import subprocess
 import psycopg2  # Используем PostgreSQL
-from datetime import datetime
+from datetime import datetime, timedelta
 import croniter
 from dotenv import load_dotenv
 
@@ -31,15 +31,26 @@ def get_parsers_to_run():
     
     to_run = []
     for database_name, update_period in parsers:
-        base_time = datetime(2024, 1, 1)  # Фиксированная точка для croniter
+        # Получаем время последнего успешного запуска из БД
+        cursor.execute(
+            "SELECT last_run FROM parser_logs "
+            "WHERE parser_name = %s "
+            "ORDER BY last_run DESC LIMIT 1",
+            (database_name,)
+        )
+        last_run = cursor.fetchone()[0] if cursor.rowcount > 0 else None
+        
+        base_time = last_run or datetime(2024, 1, 1)
         cron = convert_update_period_to_cron(update_period)
         
-        if cron and croniter.croniter(cron, base_time).get_next(datetime) <= now:
-            to_run.append(database_name)
-
-    cursor.close()
-    conn.close()
-    return to_run
+        if cron:
+            cron_iter = croniter.croniter(cron, base_time)
+            next_run = cron_iter.get_next(datetime)
+            # Проверяем что текущее время прошло время следующего запуска
+            # И что с последнего запуска прошло больше 1 минуты (защита от повторов)
+            if next_run <= now and (now - base_time).total_seconds() > 60:
+                to_run.append(database_name)
+    return to_run 
 
 
 def convert_update_period_to_cron(update_period):
@@ -89,8 +100,28 @@ def run_parsers():
             print(f"Запускаем парсер {parser}")
             print(f"Выполняемая команда: {' '.join(command)}")
             subprocess.run(command)
+            update_parser_log(parser)
         else:
             print(f"Парсер {parser} уже запущен, пропускаем")
+
+
+def update_parser_log(parser_name):
+    """Обновляет время последнего запуска парсера"""
+    conn = psycopg2.connect(
+        host=DB_HOST,
+        dbname=DB_NAME,
+        user=DB_USER,
+        password=DB_PASSWORD
+    )
+    cursor = conn.cursor()
+    cursor.execute(
+        "INSERT INTO parser_logs (parser_name) VALUES (%s)",
+        (parser_name,)
+    )
+    conn.commit()
+    cursor.close()
+    conn.close()
+
 
 if __name__ == "__main__":
     run_parsers()
