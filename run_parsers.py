@@ -1,7 +1,7 @@
 import os
 import subprocess
 import psycopg2  # Используем PostgreSQL
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 import croniter
 from dotenv import load_dotenv
 
@@ -24,33 +24,32 @@ def get_parsers_to_run():
         password=DB_PASSWORD
     )
     cursor = conn.cursor()
-    now = datetime.now()
+    now = datetime.now(timezone.utc)  # Добавляем временную зону
     
     cursor.execute(f"SELECT database_name, update_period FROM {DB_TABLE}")
     parsers = cursor.fetchall()
     
     to_run = []
     for database_name, update_period in parsers:
-        # Получаем время последнего успешного запуска из БД
         cursor.execute(
             "SELECT last_run FROM parser_logs "
             "WHERE parser_name = %s "
             "ORDER BY last_run DESC LIMIT 1",
             (database_name,)
         )
-        last_run = cursor.fetchone()[0] if cursor.rowcount > 0 else None
+        result = cursor.fetchone()
+        last_run = result[0].astimezone(timezone.utc) if result else None
         
-        base_time = last_run or datetime(2024, 1, 1)
+        base_time = last_run or datetime(2024, 1, 1, tzinfo=timezone.utc)
         cron = convert_update_period_to_cron(update_period)
         
         if cron:
             cron_iter = croniter.croniter(cron, base_time)
-            next_run = cron_iter.get_next(datetime)
-            # Проверяем что текущее время прошло время следующего запуска
-            # И что с последнего запуска прошло больше 1 минуты (защита от повторов)
+            next_run = cron_iter.get_next(datetime).astimezone(timezone.utc)
+            
             if next_run <= now and (now - base_time).total_seconds() > 60:
                 to_run.append(database_name)
-    return to_run 
+    return to_run
 
 
 def convert_update_period_to_cron(update_period):
