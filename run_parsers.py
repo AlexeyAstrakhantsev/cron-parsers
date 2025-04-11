@@ -30,6 +30,9 @@ def get_parsers_to_run():
     parsers = cursor.fetchall()
     
     to_run = []
+    print("\nИнформация о парсерах:")
+    print("-" * 50)
+    
     for database_name, update_period in parsers:
         cursor.execute(
             "SELECT last_run FROM parser_logs "
@@ -47,8 +50,20 @@ def get_parsers_to_run():
             cron_iter = croniter.croniter(cron, base_time)
             next_run = cron_iter.get_next(datetime).astimezone(timezone.utc)
             
+            print(f"Парсер: {database_name}")
+            print(f"Период обновления: {update_period}")
+            print(f"Последний запуск: {last_run if last_run else 'Никогда'}")
+            print(f"Следующий запуск: {next_run}")
+            print(f"Текущее время: {now}")
+            print("-" * 30)
+            
             if next_run <= now and (now - base_time).total_seconds() > 60:
                 to_run.append(database_name)
+                print(f"Парсер {database_name} будет запущен")
+            else:
+                print(f"Парсер {database_name} не требует запуска")
+    
+    print(f"\nВсего парсеров для запуска: {len(to_run)}")
     return to_run
 
 
